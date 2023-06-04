@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="demodb">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/dist/demodb.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
