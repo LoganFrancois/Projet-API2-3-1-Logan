@@ -19,7 +19,7 @@ public class GestBureau {
     private PresenterMessage prmessage;
 
 
-    public void gestion() {
+    public void gestion(String modeVue, String modeData) {
         VueBureauInterface vueBureau;
         VueEmployeInterface vueEmploye;
         VueMessageInterface vueMessage;
@@ -30,16 +30,31 @@ public class GestBureau {
         DAOEmploye mdEmp;
         DAOMessage mdMsg;
 
-        vcm = new VueCommune();
 
+        if (modeData.equals("db")) {
+            mdBureau = new ModeleBureauDB();
+            mdEmp = new ModeleEmployeDB();
+            mdMsg = new ModeleMessageDB();
 
-        mdBureau = new ModeleBureauDB();
-        mdEmp = new ModeleEmployeDB();
-        mdMsg = new ModeleMessageDB();
+        }
+       else{
+            mdBureau = new ModeleBureau();
+            mdEmp = new ModeleEmploye();
+            mdMsg = new ModeleMessage();
+        }
 
-        vueBureau = new VueBureau();
-        vueEmploye = new VueEmploye();
-        vueMessage = new VueMessage();
+        if (modeVue.equals("console")) {
+            vcm = new VueCommuneGraph();
+            vueBureau = new VueBureauGraph();
+            vueEmploye = new VueEmployeGraph();
+            vueMessage = new VueMessageGraph();
+        }
+       else {
+            vcm = new VueCommune();
+           vueBureau = new VueBureau();
+            vueEmploye = new VueEmploye();
+            vueMessage = new VueMessage();
+        }
 
         prbureau = new PresenterBureau(mdBureau, vueBureau);
         premploye = new PresenterEmploye(mdEmp, vueEmploye, mdBureau,vueMessage,mdMsg);
@@ -47,7 +62,7 @@ public class GestBureau {
 
 
         prmessage.setPe(premploye);
-        prmessage.setPb(prbureau);
+
 
 
         do {
@@ -68,7 +83,7 @@ public class GestBureau {
                     premploye.gestion();
                     break;
                 case 3:
-                    if (mdMsg.readAll().isEmpty()) {
+                    if (mdEmp.readAll().isEmpty()) {
                         System.out.println("Vous ne pouvez pas avoir accès à cette interface tant que vous n'avez pas encodé d'employé");
                         break;
                     }
@@ -87,9 +102,10 @@ public class GestBureau {
 
 
     public static void main(String[] args) {
-
+        String modeVue = args[0];
+        String modeData =args[1];
         GestBureau g = new GestBureau();
-        g.gestion();
+        g.gestion(modeVue,modeData);
     }
 
 

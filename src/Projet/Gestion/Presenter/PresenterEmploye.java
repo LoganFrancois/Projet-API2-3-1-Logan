@@ -19,6 +19,7 @@ public class PresenterEmploye {
     private DAOBureau mdb;
     private VueMessageInterface vueMsg;
     private DAOMessage mdm;
+    private PresenterMessage pm;
 
     public PresenterEmploye(DAOEmploye mde, VueEmployeInterface vueEmp, DAOBureau mdb, VueMessageInterface vueMsg, DAOMessage mdm) {
         this.mde = mde;
@@ -28,30 +29,13 @@ public class PresenterEmploye {
         this.mdm = mdm;
     }
 
-    private PresenterMessage pe;
-    private PresenterBureau pb;
-
-
-    public void setPe(PresenterMessage pe) {
-        this.pe = pe;
-    }
-
-    public void setPb(PresenterBureau pb) {
-        this.pb = pb;
-    }
-
-    public PresenterEmploye(DAOEmploye mde, VueEmployeInterface vueEmp, DAOBureau mdb, VueMessageInterface vueMsg) {
-        this.mde = mde;
-        this.vueEmp = vueEmp;
-        this.mdb = mdb;
-        this.vueMsg = vueMsg;
-    }
 
     public void gestion() {
         System.out.println("\n       **** Gestion des employés ****");
+        List li=null;
         do {
             System.out.println("\n");
-            int ch = vueEmp.menu(new String[]{" Ajout", " Recherche", " Modification", " Suppression", " Voir tout", " Menu Utilisateur", " Retour"});
+            int ch = vueEmp.menu(new String[]{" Ajout", " Recherche", " Modification", " Suppression", " Voir tout", " Menu Utilisateur"," Retour"});
             switch (ch) {
                 case 1:
                     ajout();
@@ -69,7 +53,9 @@ public class PresenterEmploye {
                     all();
                     break;
                 case 6:
-                    utilisateur();
+                    menuUtilisateur();
+                    break;
+
                 case 7:
                     return;
 
@@ -77,21 +63,49 @@ public class PresenterEmploye {
         } while (true);
     }
 
-    private void utilisateur() {
+    private void menuUtilisateur(){
+        boolean flag= false;
+        Employe emp;
+        do {
+             emp = recherche();
+            if (emp == null) {
+                System.out.println("Adresse mail non valide");
 
+            }
+            else {
+                flag=true;
+            }
+        }while (!flag);
 
         do {
+            List li=null;
+
             System.out.println("\n");
-            int ch = vueEmp.menu(new String[]{" Envoyer un message", " Relever ses messages non lus ", " Afficher les messages envoyés ", " Afficher les messages reçus mais déjà lus", " Retour"});
+            int ch = vueMsg.menu(new String[]{" Envoyer un message", " Relever ses messages non lus ", " Afficher les messages envoyés ", " Afficher les messages reçus mais déjà lus", " Vérifier si mes messages envoyés ont été lus", " Retour"});
             switch (ch) {
                 case 1:
-                    Employe destinataire = recherche();
-                    if (destinataire == null) {
-                        System.out.println("Adresse mail non valide");
-                        break;
-                    }
-
+                    Message msg=envoiMail(emp);
+                    add(msg);
                     break;
+                case 2:
+                    li=mdm.mail_non_lus(emp);
+                    System.out.println(li);
+                    break;
+                case 3:
+                    li=mdm.mails_envoyes(emp);
+                    System.out.println(li);
+                    break;
+                case 4:
+                    li=mdm.courrierRecu(emp);
+                    System.out.println(li);
+                    break;
+                case 5:
+                    li=mdm.verificationReponse(emp);
+                   break;
+
+                case 6:
+                    return;
+
             }
 
         } while (true);
@@ -104,6 +118,14 @@ public class PresenterEmploye {
         return msg;
     }
 
+
+    protected void add(Message msg){
+        Employe e= affAll();
+        if (e == null) return;
+        boolean res =mdm.add(e,msg);
+        if (res) vueMsg.displayMsg("message envoyé\n");
+        else vueMsg.displayMsg("échec de l'envoi");
+    }
 
     protected Employe affAll() {
         List<Employe> le = mde.readAll();
@@ -122,7 +144,7 @@ public class PresenterEmploye {
         System.out.println("----------------------------------");
         int i = 0;
         for (Bureau b : mdb.readAll()) {
-            System.out.printf(++i + "---> Id du bureau n°%s, sigle :  %s \n", b.getIdBureau(), b.getSigle());
+            System.out.printf( "---> Id du bureau n°%s, sigle :  %s \n", b.getIdBureau(), b.getSigle());
         }
     }
 

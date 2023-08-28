@@ -121,10 +121,10 @@ public class Message {
     @Override
     public String toString() {
         return
-                "\n --- objet: --- \n" + objet + '\'' +
+                "\n\n --- objet: --- \n" + objet + '\'' +
                 "\n--- contenu:  ---\n'" + contenu + '\'' +
                 " \nenvoyé le :" + dateEnvoi +
-                " \npar :" + emetteur;
+                " \npar: " + emetteur;
     }
 
 

@@ -10,6 +10,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -188,14 +189,16 @@ public class ModeleMessageDB implements DAOMessage {
             pstm.setInt(1, emp.getIdEmploye());
             ResultSet rs = pstm.executeQuery();
             while (rs.next()) {
-                int idemploye = rs.getInt("IDEMPLOYE");
+                int idemploye = rs.getInt("EMETTEUR");
                 String mail = rs.getString("MAIL");
-                String nom = rs.getString("NOM");
-                String prenom = rs.getString("PRENOM");
+                String nom = rs.getString("NOM2");
+                String prenom = rs.getString("PRENOM2");
                 String objet = rs.getString("OBJET");
                 String contenu = rs.getString("CONTENU");
+                Date date_envoi = rs.getDate("DATE_ENVOI");
                 Employe lemp = new Employe(idemploye, mail, nom, prenom, null);
-                lmess.add(new Message(1, objet, contenu, lemp));
+                Message msg=new Message(objet,contenu,date_envoi.toLocalDate(),lemp);
+                lmess.add(msg);
             }
             if (lmess.isEmpty()) {
                 System.out.println("Il n'y a pas de messages non lus");
@@ -236,8 +239,7 @@ public class ModeleMessageDB implements DAOMessage {
                 String prenom = rs.getString("PRENOM2");
                 Date date_envoi = rs.getDate("DATE_ENVOI");
                 Employe lemp = new Employe(mail, nom, prenom);
-                System.out.println("Envoyé à :" + nom + " " + prenom + " (" + mail + ") :" + "\nObjet: " + objet + "\nContenu :" + contenu + "\nle :" + date_envoi + "\n\n");
-                lmess.add(new Message(objet));
+                lmess.add(new Message(objet,contenu,date_envoi.toLocalDate(),lemp));
             }
             if (lmess.isEmpty()) {
                 System.out.println("Cet employé n'a envoyé aucun mail");
@@ -259,27 +261,32 @@ public class ModeleMessageDB implements DAOMessage {
     public List<Message> courrierRecu(Employe emp) {
         List<Message> lmess = new ArrayList<>();
         String query = "SELECT * FROM messages_lus WHERE IDEMPLOYE = ?";
-
+// VOICI LA VUE EN QUESTION::
+        //  CREATE OR REPLACE VIEW messages_lus AS
+        //  SELECT e.idemploye, m.objet, m.contenu, m.date_envoi, e2.nom AS nom2, e2.idemploye AS emetteur, e2.prenom AS prenom2, e2.mail
+        //  FROM employe e
+        //  JOIN infos i ON e.idemploye = i.idemploye
+        //  JOIN message m ON i.idmessage = m.idmessage
+        //  JOIN employe e2 ON m.idemploye = e2.idemploye
         try (PreparedStatement pstm = dbConnect.prepareStatement(query);
         ) {
             pstm.setInt(1, emp.getIdEmploye());
 
             ResultSet rs = pstm.executeQuery();
             while (rs.next()) {
-                int idemploye = rs.getInt("IDEMPLOYE");
+                int idemploye = rs.getInt("EMETTEUR");
                 String mail = rs.getString("MAIL");
-                String nom = rs.getString("NOM");
-                String prenom = rs.getString("PRENOM");
+                String nom = rs.getString("NOM2");
+                String prenom = rs.getString("PRENOM2");
                 String objet = rs.getString("OBJET");
                 String contenu = rs.getString("CONTENU");
                 Date date_envoi = rs.getDate("DATE_ENVOI");
-                LocalDate localDate = date_envoi.toLocalDate();
                 Employe lemp = new Employe(idemploye, mail, nom, prenom, null);
-                lmess.add(new Message(1, objet, contenu, localDate, lemp));
+                lmess.add(new Message(1, objet, contenu, date_envoi.toLocalDate(), lemp));
 
             }
             if (lmess.isEmpty()) {
-                System.out.println("Il n'y a pas de messages lus pour cet utilisateur");
+                System.out.println("Il n'y a pas de messages déjà lus pour cet utilisateur");
                 return null;
 
             } else {
@@ -294,7 +301,7 @@ public class ModeleMessageDB implements DAOMessage {
     }
 
     @Override
-    public List<Message> entre2dates(java.util.Date a, java.util.Date b) {
+    public List<Message> entre2dates(LocalDate a, LocalDate b) {
         List<Message> lmess = new ArrayList<>();
         String query = "SELECT objet, contenu, date_envoi FROM message WHERE date_envoi BETWEEN ? AND ?";
         try (PreparedStatement pstm = dbConnect.prepareStatement(query);
@@ -321,5 +328,59 @@ public class ModeleMessageDB implements DAOMessage {
         }
     }
 
+@Override
+public List<Message> verificationReponse(Employe emp){
+    List<Message> lmess = new ArrayList<>();
+    String query = "select * from verif_reponse WHERE IDEMPLOYE=?";
 
+
+
+   // SELECT e.idemploye, i.idemploye as Recepteur, i.datelecture, i.idmessage, m.date_envoi ,e2.nom AS nom2, e2.prenom AS prenom2, e2.mail
+    //FROM employe e
+    //JOIN message m ON e.idemploye = m.idemploye
+    //JOIN infos i ON m.idmessage = i.idmessage
+    //JOIN employe e2 ON i.idemploye = e2.idemploye;
+
+
+
+    try (PreparedStatement pstm = dbConnect.prepareStatement(query);
+    ) {
+        pstm.setInt(1, emp.getIdEmploye());
+
+        ResultSet rs = pstm.executeQuery();
+        while (rs.next()) {
+            int idemploye = rs.getInt("RECEPTEUR");
+            String mail = rs.getString("MAIL");
+            String nom = rs.getString("NOM2");
+            String prenom = rs.getString("PRENOM2");
+            String objet = rs.getString("OBJET");
+            String contenu = rs.getString("CONTENU");
+            Date datelecture = rs.getDate("DATELECTURE");
+            Date date_envoi = rs.getDate("DATE_ENVOI");
+            Employe lemp = new Employe(idemploye, mail, nom, prenom, null);
+            lmess.add(new Message(1, objet, contenu, date_envoi.toLocalDate(), lemp));
+
+
+            String redText = "\u001B[31m";
+            String resetText = "\u001B[0m";
+
+            if (datelecture != null) {
+                System.out.println("\n\nObjet: " + objet + "\n Contenu du message: " + contenu + " \n Message envoyé le: " + date_envoi + "`\n à " + nom + " " + prenom + "\n Il a été lu le " + datelecture );
+            } else {
+                System.out.println(redText + "\n\nObjet: " + objet + "\n Contenu du message: " + contenu + " \n Message envoyé le: " + date_envoi + "`\n à " + nom + " " + prenom +  "("+mail+ ")"+"\n Il n'a pas encore été lu" + resetText);
+            }
+        }
+        if (lmess.isEmpty()) {
+            System.out.println("Il n'y a pas de messages pour cet utilisateur");
+            return null;
+        } else {
+            return lmess;
+        }
+    } catch (Exception e) {
+        System.out.println(e);
+        return null;
+    }
+
+
+}
 }

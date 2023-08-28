@@ -21,5 +21,7 @@ List <Message> mails_envoyes(Employe emp);
 
 List <Message> courrierRecu(Employe emp);
 
-List <Message> entre2dates (Date a, Date b);
+List <Message> entre2dates (LocalDate a, LocalDate b);
+
+List <Message> verificationReponse (Employe emp);
 }

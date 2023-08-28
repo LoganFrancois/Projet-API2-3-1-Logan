@@ -36,6 +36,7 @@ public class ModeleMessage implements DAOMessage {
             int idMessage = msgRech.getIdMessage();
             for (Message m : mesMessages) {
                 if (m.getIdMessage() == idMessage)
+                    System.out.println("ddddd");
                     return m;
             }
             return null;
@@ -85,8 +86,15 @@ public class ModeleMessage implements DAOMessage {
         return mesMessages;
     }
 
+
+
     @Override
-    public List<Message> entre2dates(Date a, Date b) {
+    public List<Message> entre2dates(LocalDate a, LocalDate b) {
         return mesMessages;
     }
+
+    @Override
+    public List <Message> verificationReponse (Employe emp) {return mesMessages;}
+
+
 }

@@ -13,6 +13,7 @@ import Projet.Metier.Message;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class PresenterMessage {
@@ -21,14 +22,9 @@ public class PresenterMessage {
 
     private DAOMessage mdm;
     private VueMessageInterface vueMsg;
-    private DAOEmploye mde;
-
-    private PresenterBureau pb;
     private PresenterEmploye pe;
 
-    public void setPb(PresenterBureau pb) {
-        this.pb = pb;
-    }
+
 
     public void setPe(PresenterEmploye pe) {
         this.pe = pe;
@@ -44,7 +40,7 @@ public class PresenterMessage {
 
         do {
             System.out.println("\n");
-            int ch = vueMsg.menu(new String[]{" Ajout", " Recherche", " Modification", " Suppression", " Voir tout", " Menu utilisateur", " Fin"});
+            int ch = vueMsg.menu(new String[]{" Ajout", " Recherche", " Modification", " Suppression", " Voir tout", "Afficher les mails entre 2 dates"," Fin"});
             switch (ch) {
                 case 1:
                     ajout();
@@ -61,71 +57,15 @@ public class PresenterMessage {
                 case 5:
                     all();
                     break;
-                case 6:
-                    menuUtilisateur();
-                    break;
-                case 7:
-                    return;
-            }
-        } while (true);
-    }
-
-
-
-
-    private void menuUtilisateur() {
-        do {
-            List li=null;
-            Employe emp = pe.recherche();
-            if (emp == null) {
-                System.out.println("Adresse mail non valide");
-                break;
-            }
-            System.out.println("\n");
-            int ch = vueMsg.menu(new String[]{" Envoyer un message", " Relever ses messages non lus ", " Afficher les messages envoyés ", " Afficher les messages reçus mais déjà lus", "Afficher le nombre d'employés par bureau"," Retour"});
-            switch (ch) {
-                case 1:
-                    Message msg=envoiMail(emp);
-                    add(msg);
-                    return;
-                case 2:
-                    li=mdm.mail_non_lus(emp);
-                    System.out.println(li);
-                return;
-                case 3:
-                    li=mdm.mails_envoyes(emp);
-                    return;
-                case 4:
-                    li=mdm.courrierRecu(emp);
-                    System.out.println(li);
-                    return;
-                case 5:
-
-                    return;
 
                 case 6:
                     return;
             }
-
         } while (true);
-    }
-
-
-    private Message envoiMail(Employe emp) {
-        Message msg = vueMsg.envoi(emp);
-        msg = mdm.EnvoiMess(emp, msg);
-        return msg;
-    }
-
-    protected void add(Message msg){
-        Employe e= pe.affAll();
-        if (e == null) return;
-        boolean res =mdm.add(e,msg);
-        if (res) vueMsg.displayMsg("ajout avec succès\n");
-        else vueMsg.displayMsg("pas ajouté");
     }
 
     protected void countBureau(){
+
     }
 
     protected void ajout() {
